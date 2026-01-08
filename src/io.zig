@@ -2,12 +2,13 @@ const std = @import("std");
 const builtin = @import("builtin");
 const os = std.os;
 
-const IO_Linux = @import("io/linux.zig").IO;
+const IO_Linux_Uring = @import("io/linux.zig").IO;
+const IO_Linux_Epoll = @import("io/linux_epoll.zig").IO;
 const IO_Darwin = @import("io/darwin.zig").IO;
 const IO_Windows = @import("io/windows.zig").IO;
 
 pub const IO = switch (builtin.target.os.tag) {
-    .linux => IO_Linux,
+    .linux => if(IO_Linux_Uring.is_io_uring_avalable()) IO_Linux_Uring else IO_Linux_Epoll,
     .windows => IO_Windows,
     .macos, .tvos, .watchos, .ios => IO_Darwin,
     else => @compileError("IO is not supported for platform"),
